@@ -72,16 +72,16 @@ This project integrates with Atlassian Confluence using OAuth2 authentication. I
 
 ## API Endpoints
 
-### `/auth`
+`/auth`
 Redirects the user to the Confluence authentication page.
 
-### `/auth/callback`
+`/auth/callback`
 Handles the callback after authentication and saves the tokens.
 
-### `/pages/:spaceId`
+`/pages/:spaceId`
 Returns a list of pages in the specified Confluence space.
 
-### `/page/:pageId`
+`/page/:pageId`
 Returns the details of a specific Confluence page.
 
 ## Testing
