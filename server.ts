@@ -9,54 +9,37 @@ const app = express();
 app.get('/auth', authController.redirectToAuth);
 app.get('/auth/callback', authController.handleCallback);
 
-app.get('/run', async (req: Request, res: Response) => {
+app.get('/pages/:spaceId', async (req, res) => {
+  const { spaceId } = req.params;
+  console.log(`Received request to list pages for space: ${spaceId}`);
+
   try {
     await authService.getAccessToken();
-    console.log('Access token available. Proceeding with Confluence API calls.');
-
-    let responseMessage = '';
-
-    if (config.spaceKeyForTests) {
-      console.log(`\nListing pages in space: ${config.spaceKeyForTests}`);
-      try {
-        const pages = await confluenceService.listPagesInSpace(config.spaceKeyForTests);
-        responseMessage += `Found ${pages.length} pages in space ${config.spaceKeyForTests}.\n`;
-      } catch (error: any) {
-        console.error('Error listing pages:', error.message);
-        responseMessage += `Error listing pages: ${error.message}\n`;
-      }
-    }
-
-    if (config.existingPageIdForTests) {
-      console.log(`\nGetting content for page ID: ${config.existingPageIdForTests}`);
-      try {
-        const content = await confluenceService.getPageContent(config.existingPageIdForTests);
-        responseMessage += `Page title: ${content.title}\n`;
-      } catch (error: any) {
-        console.error('Error getting page content:', error.message);
-        responseMessage += `Error getting page content: ${error.message}\n`;
-      }
-    }
-
-    res.send(responseMessage || 'No actions performed.');
+    const pages = await confluenceService.listPagesInSpace(spaceId);
+    res.json({ pages });
   } catch (error: any) {
-    if (error.message.includes('No access token or refresh token available')) {
-      console.log('\nNo refresh token found. Please authenticate with Confluence.');
-      res.status(401).send('No refresh token found. Please authenticate with Confluence.');
-    } else {
-      console.error('An error occurred:', error);
-      res.status(500).send(`An error occurred: ${error.message}`);
-    }
+    console.error(`Error fetching pages for space ${spaceId}:`, error.message);
+    res.status(500).send(`Error fetching pages: ${error.message}`);
   }
 });
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Confluence Integration Service. Go to /auth to authenticate.');
-});
+app.get('/page/:pageId', async (req, res) => {
+  const { pageId } = req.params;
+  console.log(`Received request to get details for page: ${pageId}`);
 
+  try {
+    await authService.getAccessToken();
+    const pageDetails = await confluenceService.getPageContent(pageId);
+    res.json({ pageDetails });
+  } catch (error: any) {
+    console.error(`Error fetching details for page ${pageId}:`, error.message);
+    res.status(500).send(`Error fetching page details: ${error.message}`);
+  }
+});
 
 app.listen(config.port, () => {
   console.log(`Server listening on port ${config.port}`);
   console.log(`Visit http://localhost:${config.port}/auth to start the authentication process.`);
-  console.log(`Visit http://localhost:${config.port}/run to execute the main logic.`);
+  console.log(`Use /pages/:spaceId to get a list of pages in a space.`);
+  console.log(`Use /page/:pageId to get details of a specific page.`);
 });
