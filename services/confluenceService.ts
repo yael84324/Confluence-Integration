@@ -1,18 +1,8 @@
-import axios, { AxiosError, AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { config } from '../config';
 import { authService } from './authService';
+import { handleApiError } from '../utils/errorHandler';
 import { PageInfo, PageContent } from '../types';
-
-async function handleApiError(error: AxiosError): Promise<never> {
-  if (error.response) {
-    const errorMessage = `Confluence API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`;
-    throw new Error(errorMessage);
-  } else if (error.request) {
-    throw new Error('Confluence API Error: No response received');
-  } else {
-    throw new Error(`Confluence API Error: Request setup failed - ${error.message}`);
-  }
-}
 
 export const confluenceService = {
   async listPagesInSpace(spaceKey: string): Promise<PageInfo[]> {
