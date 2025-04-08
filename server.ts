@@ -2,7 +2,6 @@ import express, { Request, Response } from 'express';
 import { authController } from './controllers/authController';
 import { config } from './config';
 import { confluenceService } from './services/confluenceService';
-import { authService } from './services/authService';
 
 const app = express();
 
@@ -14,7 +13,6 @@ app.get('/pages/:spaceId', async (req, res) => {
   console.log(`Received request to list pages for space: ${spaceId}`);
 
   try {
-    await authService.getAccessToken();
     const pages = await confluenceService.listPagesInSpace(spaceId);
     res.json({ pages });
   } catch (error: any) {
@@ -28,7 +26,6 @@ app.get('/page/:pageId', async (req, res) => {
   console.log(`Received request to get details for page: ${pageId}`);
 
   try {
-    await authService.getAccessToken();
     const pageDetails = await confluenceService.getPageContent(pageId);
     res.json({ pageDetails });
   } catch (error: any) {
